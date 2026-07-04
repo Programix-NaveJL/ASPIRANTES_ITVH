@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estándares de Seguridad Infantil — Aspirantes ITVH</title>
+<link rel="icon" type="image/png" href="imagenes/logo_comunidad_itvh.png">
+<link rel="apple-touch-icon" href="imagenes/logo_comunidad_itvh.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #FAF8F2;
+    --bg-secondary: #F1EDE2;
+    --bg-tertiary: #E9E2D2;
+    --text-primary: #1E2A22;
+    --text-secondary: #5B6B5F;
+    --text-muted: #97A294;
+    --border: #DED7C4;
+    --border-hover: #C9C0A8;
+    --accent: #2E6E4E;
+    --accent-light: #E4EFE6;
+    --accent-dark: #1D4A33;
+    --gold: #B5832A;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --sidebar-w: 260px;
+    --prohibited-bg: #FCF1ED;
+    --prohibited-border: #D97757;
+    --prohibited-text: #8A3B22;
+    --allowed-bg: #EBF3EC;
+    --allowed-border: #2E6E4E;
+    --allowed-text: #1D4A33;
+    --note-bg: #F0F4FF;
+    --note-border: #5B7FD4;
+    --note-text: #1E3A7B;
+    --tag-bg: rgba(30,42,34,0.06);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+    min-height: 100vh;
+  }
+
+  h1, h2, .brand-name, .module-title, .final-brand-text h2, .hero-meta, .section-num, .module-num {
+    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.25rem; height: 60px;
+    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-primary); min-width: 0; flex: 1; }
+  .brand-logo { height: 32px; width: auto; object-fit: contain; display: block; flex-shrink: 0; }
+  .brand-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+  .brand-text { display: flex; flex-direction: column; min-width: 0; }
+  .brand-name { font-size: 13px; font-weight: 600; letter-spacing: -0.2px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-sub  { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .mobile-menu-btn { display: none; background: none; border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 8px; cursor: pointer; color: var(--text-primary); flex-shrink: 0; }
+  .mobile-menu-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; display: block; }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.25rem; gap: 1.75rem; align-items: flex-start; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { width: var(--sidebar-w); flex-shrink: 0; position: sticky; top: 80px; max-height: calc(100vh - 100px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .sidebar-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); padding: 0 4px 8px; display: block; }
+  .sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); text-decoration: none; color: var(--text-secondary); font-size: 13px; font-weight: 400; transition: background 0.12s, color 0.12s; cursor: pointer; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: var(--bg-secondary); color: var(--text-primary); }
+  .nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+  .nav-item .nav-num { width: 22px; height: 22px; border-radius: 5px; background: var(--bg-tertiary); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+  .nav-item.active .nav-num { background: var(--accent); color: #fff; }
+  .sidebar-footer { margin-top: 1.5rem; padding: 12px; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border); }
+  .sidebar-footer-logo { height: 28px; width: auto; object-fit: contain; margin-bottom: 8px; display: block; }
+  .sidebar-footer p { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+  .sidebar-footer a { color: var(--accent); text-decoration: none; }
+  .sidebar-footer a:hover { text-decoration: underline; }
+
+  /* ── MAIN ── */
+  .main { flex: 1; min-width: 0; }
+
+  /* HERO */
+  .hero { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 1rem; overflow: hidden; }
+  .hero-band {
+    height: 48px; background-color: var(--accent-dark);
+    background-image:
+      radial-gradient(circle at 10px 12px, rgba(255,255,255,0.16) 0 3px, transparent 3.5px),
+      radial-gradient(circle at 34px 30px, rgba(255,255,255,0.11) 0 2.5px, transparent 3px),
+      radial-gradient(circle at 58px 10px, rgba(255,255,255,0.13) 0 2px, transparent 2.5px),
+      radial-gradient(circle at 80px 34px, rgba(255,255,255,0.10) 0 2.5px, transparent 3px);
+    background-size: 96px 48px;
+  }
+  .hero-body { display: flex; align-items: flex-start; gap: 1.25rem; padding: 1.25rem 1.5rem 1.75rem; }
+  .hero-logo { width: 60px; height: 60px; object-fit: contain; flex-shrink: 0; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); padding: 6px; margin-top: -36px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .hero h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; margin-bottom: 6px; }
+  .hero p  { font-size: 13.5px; color: var(--text-secondary); line-height: 1.65; }
+  .hero-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary); }
+  .meta-tag { display: inline-flex; align-items: baseline; gap: 5px; }
+  .meta-tag .meta-label { font-size: 9px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .meta-tag.version { color: var(--gold); font-weight: 600; }
+  .meta-divider { width: 1px; height: 12px; background: var(--border); }
+
+  /* INTRO CARD */
+  .intro-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; margin-bottom: 1rem; font-size: 13.5px; color: var(--text-secondary); line-height: 1.75; }
+  .intro-card p { margin-bottom: 0.6rem; }
+  .intro-card p:last-child { margin-bottom: 0; }
+  .intro-card strong { color: var(--text-primary); font-weight: 600; }
+
+  /* INFO BAR */
+  .info-bar { background: var(--bg); border: 1px solid var(--border); border-left: 3px solid var(--gold); border-radius: var(--radius); padding: 11px 14px; font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; }
+  .info-bar strong { color: var(--text-primary); font-weight: 600; }
+
+  /* MODULE CARD */
+  .module-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 0.75rem; overflow: hidden; transition: border-color 0.15s; }
+  .module-card:hover { border-color: var(--border-hover); }
+  .module-card.open  { border-color: var(--accent); }
+  .module-header { display: flex; align-items: center; gap: 12px; padding: 1rem 1.25rem; cursor: pointer; user-select: none; background: none; border: none; width: 100%; text-align: left; color: var(--text-primary); transition: background 0.1s; -webkit-tap-highlight-color: transparent; }
+  .module-header:hover { background: var(--bg-secondary); }
+  .module-card.open .module-header { background: var(--bg-secondary); }
+  .module-num { width: 34px; height: 34px; background: var(--bg-tertiary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--text-muted); flex-shrink: 0; transition: background 0.15s, color 0.15s; }
+  .module-card.open .module-num { background: var(--accent); color: #fff; }
+  .module-title-wrap { flex: 1; min-width: 0; }
+  .module-title    { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .module-subtitle { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .module-count { font-size: 11px; color: var(--text-muted); background: var(--bg-tertiary); border: 1px solid var(--border); padding: 2px 7px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+  .chevron { width: 17px; height: 17px; flex-shrink: 0; fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.2s; }
+  .module-card.open .chevron { transform: rotate(180deg); }
+  .module-body { display: none; border-top: 1px solid var(--border); }
+  .module-card.open .module-body { display: block; }
+
+  /* SECTIONS */
+  .section-item { border-bottom: 1px solid var(--border); overflow: hidden; }
+  .section-item:last-child { border-bottom: none; }
+  .section-header { display: flex; align-items: center; gap: 10px; padding: 11px 1.25rem; cursor: pointer; user-select: none; background: none; border: none; width: 100%; text-align: left; color: var(--text-primary); transition: background 0.1s; -webkit-tap-highlight-color: transparent; }
+  .section-header:hover { background: var(--bg-secondary); }
+  .section-header.s-open { background: var(--bg-tertiary); }
+  .section-num { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 600; color: var(--accent); width: 50px; flex-shrink: 0; }
+  .section-title { font-size: 13px; font-weight: 500; flex: 1; text-align: left; }
+  .s-chevron { width: 13px; height: 13px; fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.18s; flex-shrink: 0; }
+  .section-header.s-open .s-chevron { transform: rotate(90deg); }
+  .section-body { display: none; padding: 1rem 1.25rem 1.1rem; font-size: 13.5px; color: var(--text-secondary); line-height: 1.75; background: var(--bg); }
+  .section-body.visible { display: block; }
+  .section-body p { margin-bottom: 0.7rem; }
+  .section-body p:last-child { margin-bottom: 0; }
+  .section-body ul { list-style: none; display: flex; flex-direction: column; gap: 6px; margin: 0.5rem 0; }
+  .section-body ul li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; }
+  .section-body ul li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 9px; }
+  .section-body strong { color: var(--text-primary); font-weight: 600; }
+
+  /* BLOQUES SEMÁNTICOS */
+  .prohibited-block, .allowed-block, .note-block { border-left: 3px solid; border-radius: 0 var(--radius) var(--radius) 0; padding: 10px 12px; margin: 0.75rem 0; font-size: 13px; }
+  .prohibited-block { border-color: var(--prohibited-border); background: var(--prohibited-bg); }
+  .allowed-block    { border-color: var(--allowed-border);    background: var(--allowed-bg); }
+  .note-block       { border-color: var(--note-border);       background: var(--note-bg); }
+  .p-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .prohibited-block .p-label { color: var(--prohibited-text); }
+  .allowed-block .p-label    { color: var(--allowed-text); }
+  .note-block .p-label       { color: var(--note-text); }
+  .note-block p              { color: var(--note-text); font-size: 13px; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .tag { font-size: 11.5px; padding: 3px 8px; border-radius: var(--radius); background: var(--tag-bg); color: var(--text-secondary); }
+
+  /* TIMELINE */
+  .timeline { display: flex; flex-direction: column; gap: 0; margin: 0.75rem 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .timeline-step { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .timeline-step:last-child { border-bottom: none; background: var(--allowed-bg); }
+  .timeline-dot { width: 22px; height: 22px; border-radius: 50%; background: var(--bg-tertiary); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); flex-shrink: 0; margin-top: 1px; }
+  .timeline-step:last-child .timeline-dot { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .timeline-content { flex: 1; }
+  .timeline-title { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+  .timeline-desc   { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .timeline-step:last-child .timeline-title { color: var(--allowed-text); }
+  .timeline-step:last-child .timeline-desc  { color: var(--allowed-text); opacity: 0.85; }
+
+  /* FINAL CARD */
+  .final-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 0.75rem; overflow: hidden; }
+  .final-brand { display: flex; align-items: center; gap: 12px; padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--bg-secondary); }
+  .final-brand-logo { height: 44px; width: auto; object-fit: contain; flex-shrink: 0; }
+  .final-brand-text h2 { font-size: 15px; font-weight: 600; }
+  .final-brand-text p  { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+  .final-body { padding: 1.25rem; }
+  .final-body > p { font-size: 13.5px; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.7; }
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 0.75rem; }
+  .contact-item { background: var(--bg-secondary); border-radius: var(--radius); padding: 10px 12px; border: 1px solid var(--border); }
+  .contact-item .c-label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 3px; }
+  .contact-item .c-val   { font-size: 12.5px; color: var(--text-primary); word-break: break-word; }
+  .contact-item .c-val a { color: var(--accent); text-decoration: none; }
+  .contact-item .c-val a:hover { text-decoration: underline; }
+  .final-divider { height: 1px; background: var(--border); margin: 1.1rem 0; }
+  .copyright { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 11.5px; color: var(--text-muted); }
+  .copyright-logo { height: 20px; width: auto; object-fit: contain; opacity: 0.6; transition: opacity 0.15s; }
+  .copyright-logo:hover { opacity: 1; }
+
+  /* SCROLL TOP */
+  .scroll-top { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 42px; height: 42px; background: var(--accent); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 50; box-shadow: 0 2px 12px rgba(46,110,78,0.3); }
+  .scroll-top.show { opacity: 1; pointer-events: auto; }
+  .scroll-top:hover { transform: translateY(-2px); }
+  .scroll-top svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ════════ RESPONSIVE ════════ */
+  @media (max-width: 900px) {
+    .mobile-menu-btn { display: flex; }
+    .brand-sub { display: none; }
+    .layout { flex-direction: column; padding: 1rem; gap: 0.75rem; }
+    .sidebar { position: static; width: 100%; max-height: none; overflow: visible; display: none; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+    .sidebar.open { display: block; }
+  }
+  @media (max-width: 480px) {
+    .topbar { padding: 0 0.875rem; height: 56px; gap: 0.5rem; }
+    .topbar-brand { gap: 8px; }
+    .brand-logo { height: 28px; }
+    .brand-divider { height: 20px; }
+    .brand-name { font-size: 12px; }
+    .hero-body { flex-direction: column; padding: 1rem 1rem 1.25rem; gap: 0.75rem; }
+    .hero-logo { width: 52px; height: 52px; margin-top: -32px; }
+    .hero h1 { font-size: 17px; }
+    .hero p  { font-size: 13px; }
+    .hero-meta { gap: 8px; font-size: 11px; }
+    .meta-divider { display: none; }
+    .intro-card { padding: 1rem; font-size: 13px; }
+    .info-bar { padding: 10px 12px; font-size: 12.5px; }
+    .module-header { padding: 0.875rem 1rem; gap: 10px; }
+    .module-num    { width: 30px; height: 30px; font-size: 11px; }
+    .module-title  { font-size: 13px; }
+    .module-subtitle { display: none; }
+    .module-count    { display: none; }
+    .chevron         { width: 15px; height: 15px; }
+    .section-header { padding: 10px 1rem; gap: 8px; }
+    .section-num    { font-size: 10px; width: 44px; }
+    .section-title  { font-size: 12.5px; }
+    .s-chevron      { width: 12px; height: 12px; }
+    .section-body { padding: 0.875rem 1rem 1rem; font-size: 13px; }
+    .section-body ul li { font-size: 12.5px; }
+    .prohibited-block, .allowed-block, .note-block { padding: 8px 10px; font-size: 12.5px; }
+    .tag { font-size: 11px; padding: 2px 7px; }
+    .timeline-step { padding: 9px 10px; gap: 10px; }
+    .timeline-dot  { width: 20px; height: 20px; font-size: 9px; }
+    .timeline-title { font-size: 12px; }
+    .timeline-desc  { font-size: 11px; }
+    .final-brand { padding: 0.875rem 1rem; gap: 10px; }
+    .final-brand-logo { height: 36px; }
+    .final-brand-text h2 { font-size: 14px; }
+    .final-brand-text p  { font-size: 12px; }
+    .final-body { padding: 1rem; }
+    .final-body > p { font-size: 13px; }
+    .contact-grid { grid-template-columns: 1fr; gap: 6px; }
+    .contact-item { padding: 9px 10px; }
+    .contact-item .c-label { font-size: 10px; }
+    .contact-item .c-val   { font-size: 12px; }
+    .copyright { font-size: 11px; }
+    .scroll-top { bottom: 1rem; right: 1rem; width: 38px; height: 38px; }
+  }
+  @media (max-width: 360px) {
+    .brand-divider { display: none; }
+    .brand-text    { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ TOP BAR ══ -->
+<header class="topbar">
+  <a href="#" class="topbar-brand">
+    <img src="imagenes/logo_programix_navejl.png" alt="Programix NaveJL" class="brand-logo">
+    <div class="brand-divider"></div>
+    <div class="brand-text">
+      <span class="brand-name">Aspirantes ITVH</span>
+      <span class="brand-sub">Estándares de Seguridad Infantil</span>
+    </div>
+  </a>
+  <div class="topbar-right">
+    <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menú">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="sidebar">
+    <span class="sidebar-label">Módulos</span>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="#" onclick="scrollToModule(0,event)"><span class="nav-num">1</span> Compromiso y Alcance</a>
+      <a class="nav-item" href="#" onclick="scrollToModule(1,event)"><span class="nav-num">2</span> Prevención y Prohibición</a>
+      <a class="nav-item" href="#" onclick="scrollToModule(2,event)"><span class="nav-num">3</span> Reporte y Moderación</a>
+      <a class="nav-item" href="#" onclick="scrollToModule(3,event)"><span class="nav-num">4</span> Contacto y Cumplimiento</a>
+    </nav>
+    <div class="sidebar-footer">
+      <img src="imagenes/logo_programix_navejl.png" alt="Programix NaveJL" class="sidebar-footer-logo">
+      <p>Versión 1.0 &nbsp;·&nbsp; Vigente desde 06/07/2026<br>
+      <a href="https://programix-navejl.github.io/programix-navejl/" target="_blank">programix-navejl.github.io</a></p>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-band" aria-hidden="true"></div>
+      <div class="hero-body">
+        <img src="imagenes/logo_comunidad_itvh.png" alt="Aspirantes ITVH" class="hero-logo">
+        <div>
+          <h1>Estándares de Seguridad Infantil</h1>
+          <p>Este documento describe el compromiso de <strong>Programix NaveJL</strong> con la protección de los menores de edad frente a cualquier forma de explotación o abuso sexual infantil dentro de la app <strong>Aspirantes ITVH</strong>, en cumplimiento de las políticas de Google Play sobre estándares de seguridad infantil.</p>
+          <div class="hero-meta">
+            <span class="meta-tag version"><span class="meta-label">Versión</span> 1.0</span>
+            <span class="meta-divider"></span>
+            <span class="meta-tag"><span class="meta-label">Módulos</span> 4</span>
+            <span class="meta-divider"></span>
+            <span class="meta-tag"><span class="meta-label">Plataforma</span> Aspirantes ITVH</span>
+            <span class="meta-divider"></span>
+            <span class="meta-tag"><span class="meta-label">Vigente desde</span> 06/07/2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTRODUCCIÓN -->
+    <div class="intro-card">
+      <p><strong>Programix NaveJL</strong> mantiene una postura de <strong>tolerancia cero</strong> frente a cualquier forma de explotación o abuso sexual infantil (conocido internacionalmente como CSAE, por sus siglas en inglés). Este compromiso aplica a todas las funcionalidades de la app Aspirantes ITVH que permiten la publicación o el intercambio de contenido entre usuarios, incluyendo Comunidad Aspirantes y Mi Perfil.</p>
+      <p>La presente política complementa los <strong>Términos y Condiciones de Uso</strong> y la <strong>Política de Privacidad</strong> de la app Aspirantes ITVH y deberá interpretarse conjuntamente con dichos documentos.</p>
+    </div>
+
+    <!-- NOTA -->
+    <div class="info-bar">
+      <strong>Vigencia.</strong> El presente documento entra en vigor el <strong>lunes 6 de julio de 2026</strong> y se mantiene disponible públicamente de forma permanente, conforme lo exige la política de estándares de seguridad infantil de Google Play.
+    </div>
+
+    <!-- ══ MÓDULOS ══ -->
+    <div id="modules-container">
+
+      <!-- MÓDULO 1 -->
+      <div class="module-card" id="module-0">
+        <button class="module-header" onclick="toggleModule(0)">
+          <div class="module-num">01</div>
+          <div class="module-title-wrap">
+            <div class="module-title">Compromiso y Alcance</div>
+            <div class="module-subtitle">A quién protege esta política y por qué existe</div>
+          </div>
+          <span class="module-count">3 secciones</span>
+          <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="module-body">
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">1.1</span><span class="section-title">Objetivo</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <p>El presente documento establece los estándares que Programix NaveJL aplica para prevenir, detectar y responder ante cualquier intento de explotación o abuso sexual infantil dentro de la app Aspirantes ITVH, así como los canales de reporte disponibles para los usuarios y el público en general.</p>
+            </div>
+          </div>
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">1.2</span><span class="section-title">Alcance de la app</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <p>Aspirantes ITVH está dirigida a personas interesadas en ingresar al Instituto Tecnológico de Villahermosa, en su mayoría estudiantes de nivel medio superior próximos a alcanzar la mayoría de edad o recién ingresados a la mayoría de edad. Aun así, Programix NaveJL aplica los mismos estándares de protección que exige Google Play para cualquier app que permita la interacción entre usuarios.</p>
+            </div>
+          </div>
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">1.3</span><span class="section-title">Compromiso institucional</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <div class="allowed-block">
+                <div class="p-label">Tolerancia cero</div>
+                <p style="color: var(--allowed-text); font-size: 13px;">Programix NaveJL no permite, tolera, promueve ni facilita bajo ninguna circunstancia contenido, conducta o comunicación que constituya explotación o abuso sexual infantil, sin importar el formato en el que se presente.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÓDULO 2 -->
+      <div class="module-card" id="module-1">
+        <button class="module-header" onclick="toggleModule(1)">
+          <div class="module-num">02</div>
+          <div class="module-title-wrap">
+            <div class="module-title">Prevención y Prohibición</div>
+            <div class="module-subtitle">Qué está prohibido y qué medidas preventivas existen</div>
+          </div>
+          <span class="module-count">3 secciones</span>
+          <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="module-body">
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">2.1</span><span class="section-title">Contenido y conductas prohibidas</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <div class="prohibited-block">
+                <div class="p-label">Queda estrictamente prohibido</div>
+                <ul>
+                  <li>Publicar, compartir o solicitar material que sexualice a menores de edad</li>
+                  <li>Cualquier intento de contacto con fines de explotación o abuso hacia un menor</li>
+                  <li>Conductas de acecho, aislamiento o manipulación dirigidas a un menor (grooming)</li>
+                  <li>Uso de la Plataforma para coordinar, promover o facilitar dichas conductas por cualquier medio</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">2.2</span><span class="section-title">Medidas preventivas</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <p>La app Aspirantes ITVH cuenta con mecanismos de moderación de contenido en las secciones de Comunidad Aspirantes y Mi Perfil, así como con herramientas de reporte y bloqueo disponibles para todos los usuarios, conforme a lo descrito en los Términos y Condiciones de Uso de la Plataforma.</p>
+            </div>
+          </div>
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">2.3</span><span class="section-title">Aplicación conjunta con otros documentos</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <p>Esta política se aplica junto con la sección de <strong>Contenido prohibido</strong> de los Términos y Condiciones de Uso de Aspirantes ITVH, que regula de manera general el contenido no permitido dentro de la Comunidad Aspirantes.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÓDULO 3 -->
+      <div class="module-card" id="module-2">
+        <button class="module-header" onclick="toggleModule(2)">
+          <div class="module-num">03</div>
+          <div class="module-title-wrap">
+            <div class="module-title">Reporte y Moderación</div>
+            <div class="module-subtitle">Cómo reportar y qué sucede después</div>
+          </div>
+          <span class="module-count">3 secciones</span>
+          <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="module-body">
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">3.1</span><span class="section-title">Cómo reportar</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <p>Cualquier usuario, o cualquier persona ajena a la Plataforma, puede reportar contenido o conductas sospechosas relacionadas con explotación o abuso sexual infantil a través del correo de contacto oficial <strong>alfredo.naveju.lop@gmail.com</strong>, indicando en el asunto "Reporte de seguridad infantil" junto con la mayor cantidad de detalles posible (usuario, publicación o fecha del incidente).</p>
+            </div>
+          </div>
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">3.2</span><span class="section-title">Proceso de atención a reportes</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <p>De manera orientativa, todo reporte relacionado con seguridad infantil sigue el siguiente proceso:</p>
+              <div class="timeline">
+                <div class="timeline-step">
+                  <div class="timeline-dot">1</div>
+                  <div class="timeline-content">
+                    <div class="timeline-title">Recepción del reporte</div>
+                    <div class="timeline-desc">El reporte se recibe a través del correo de contacto oficial y se le da prioridad inmediata.</div>
+                  </div>
+                </div>
+                <div class="timeline-step">
+                  <div class="timeline-dot">2</div>
+                  <div class="timeline-content">
+                    <div class="timeline-title">Revisión del contenido reportado</div>
+                    <div class="timeline-desc">Se revisa la publicación, perfil o conducta señalada para verificar si incumple esta política.</div>
+                  </div>
+                </div>
+                <div class="timeline-step">
+                  <div class="timeline-dot">3</div>
+                  <div class="timeline-content">
+                    <div class="timeline-title">Acción sobre la cuenta o contenido</div>
+                    <div class="timeline-desc">De confirmarse la infracción, se elimina el contenido y se suspende o expulsa la cuenta responsable.</div>
+                  </div>
+                </div>
+                <div class="timeline-step">
+                  <div class="timeline-dot">✓</div>
+                  <div class="timeline-content">
+                    <div class="timeline-title">Notificación a autoridades competentes</div>
+                    <div class="timeline-desc">Cuando la naturaleza del caso lo requiera, se pone la información a disposición de las autoridades correspondientes.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">3.3</span><span class="section-title">Acciones de cumplimiento</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <p>Ante cualquier violación confirmada a esta política, Programix NaveJL podrá eliminar de forma inmediata el contenido correspondiente, suspender o expulsar de manera permanente la cuenta involucrada, y colaborar con las autoridades competentes cuando la ley así lo exija.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÓDULO 4 -->
+      <div class="module-card" id="module-3">
+        <button class="module-header" onclick="toggleModule(3)">
+          <div class="module-num">04</div>
+          <div class="module-title-wrap">
+            <div class="module-title">Contacto y Cumplimiento</div>
+            <div class="module-subtitle">Persona responsable y canal oficial</div>
+          </div>
+          <span class="module-count">2 secciones</span>
+          <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="module-body">
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">4.1</span><span class="section-title">Persona de contacto designada</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <p>José Alfredo Navejú López, en representación de Programix NaveJL, es la persona designada para atender consultas relacionadas con el cumplimiento de esta política y las prácticas de prevención de explotación y abuso sexual infantil en la app Aspirantes ITVH.</p>
+            </div>
+          </div>
+          <div class="section-item">
+            <button class="section-header" onclick="toggleSection(this)">
+              <span class="section-num">4.2</span><span class="section-title">Actualizaciones a esta política</span>
+              <svg class="s-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="section-body">
+              <p>Programix NaveJL podrá actualizar este documento cuando resulte necesario para reflejar cambios en la operación de la Plataforma o en las políticas aplicables. La versión vigente se mantendrá siempre disponible públicamente en esta misma dirección.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /modules-container -->
+
+    <!-- DISPOSICIÓN FINAL -->
+    <div class="final-card">
+      <div class="final-brand">
+        <img src="imagenes/logo_comunidad_itvh.png" alt="Aspirantes ITVH" class="final-brand-logo">
+        <div class="final-brand-text">
+          <h2>Información del Documento</h2>
+          <p>Estándares de Seguridad Infantil — Aspirantes ITVH</p>
+        </div>
+      </div>
+      <div class="final-body">
+        <p>El presente documento constituye la declaración pública de estándares de seguridad infantil de la app Aspirantes ITVH, conforme lo requiere Google Play para aplicaciones que permiten la interacción entre usuarios.</p>
+        <div class="contact-grid">
+          <div class="contact-item">
+            <div class="c-label">Documento</div>
+            <div class="c-val">Estándares de Seguridad Infantil</div>
+          </div>
+          <div class="contact-item">
+            <div class="c-label">Versión</div>
+            <div class="c-val">1.0</div>
+          </div>
+          <div class="contact-item">
+            <div class="c-label">Plataforma</div>
+            <div class="c-val">Aspirantes ITVH</div>
+          </div>
+          <div class="contact-item">
+            <div class="c-label">Desarrollado por</div>
+            <div class="c-val">Programix NaveJL</div>
+          </div>
+          <div class="contact-item">
+            <div class="c-label">Correo de contacto</div>
+            <div class="c-val"><a href="mailto:alfredo.naveju.lop@gmail.com">alfredo.naveju.lop@gmail.com</a></div>
+          </div>
+          <div class="contact-item">
+            <div class="c-label">Fecha de entrada en vigor</div>
+            <div class="c-val">6 de julio de 2026</div>
+          </div>
+        </div>
+        <div class="final-divider"></div>
+        <div class="copyright">
+          <span>© 2026 Programix NaveJL. Todos los derechos reservados.</span>
+          <img src="imagenes/logo_programix_navejl.png" alt="Programix NaveJL" class="copyright-logo">
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Ir al inicio">
+  <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<script>
+  const modules  = document.querySelectorAll('.module-card');
+  const navItems = document.querySelectorAll('.nav-item');
+
+  function toggleModule(idx) { modules[idx].classList.toggle('open'); }
+
+  function toggleSection(btn) {
+    const isOpen = btn.classList.contains('s-open');
+    btn.classList.toggle('s-open', !isOpen);
+    btn.nextElementSibling.classList.toggle('visible', !isOpen);
+  }
+
+  function scrollToModule(idx, e) {
+    e.preventDefault();
+    if (!modules[idx].classList.contains('open')) modules[idx].classList.add('open');
+    setTimeout(() => modules[idx].scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    navItems.forEach(n => n.classList.remove('active'));
+    navItems[idx].classList.add('active');
+    document.getElementById('sidebar').classList.remove('open');
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  window.addEventListener('scroll', () => {
+    document.getElementById('scroll-top').classList.toggle('show', window.scrollY > 400);
+    let current = 0;
+    modules.forEach((m, i) => { if (m.getBoundingClientRect().top < 120) current = i; });
+    navItems.forEach(n => n.classList.remove('active'));
+    navItems[current].classList.add('active');
+  });
+
+  modules[0].classList.add('open');
+</script>
+</body>
+</html>
