@@ -1,0 +1,195 @@
+# ═════════════════════════════════════════════════════════════════
+# pubspec.yaml — Aspirantes ITVH
+#
+# Estructura:
+#   • Metadatos          — nombre, descripción, versión, SDK
+#   • dependencies       — paquetes de producción agrupados por dominio
+#   • dev_dependencies   — herramientas de generación de código y pruebas
+#   • flutter_native_splash — pantalla de bienvenida (Android / Android 12+)
+#   • flutter_launcher_icons — ícono de la app (Android adaptativo + iOS)
+#   • flutter             — assets declarados por categoría
+#
+# Convención de versiones:
+#   Se usa ^ (compatible semver) en todos los paquetes para permitir
+#   actualizaciones de parche y menor sin romper la API.
+#
+# Nota: idéntico a Comunidad TecNM Villahermosa — Aspirantes ITVH
+#   reutiliza los mismos módulos base (feed, historias, perfil, mapa).
+#   No incluye mensajería directa entre usuarios.
+#
+# Nota: isar / isar_flutter_libs / isar_generator están fijados en
+#   ^3.1.0 porque la versión 4.x cambió la API de forma incompatible
+#   y aún no tiene soporte oficial para todas las plataformas destino.
+# ═════════════════════════════════════════════════════════════════
+
+name: aspirantes_itvh_app
+description: "Comunidad de aspirantes de nuevo ingreso del Tec de Villahermosa"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.0.0
+
+
+# ─────────────────────────────────────────────────────────────────
+# DEPENDENCIAS DE PRODUCCIÓN
+# ─────────────────────────────────────────────────────────────────
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ── UI y diseño ───────────────────────────────────────────────
+  cupertino_icons: ^1.0.8       # Íconos de estilo iOS
+  google_fonts: ^8.1.0          # Tipografías de Google Fonts
+  photo_view: ^0.15.0           # Visor de imágenes con zoom y pan
+  flutter_html: ^3.0.0-beta.2   # Renderizado de HTML embebido
+  cached_network_image: ^3.3.1  # Imágenes de red con caché en disco
+
+  # ── Backend y autenticación ───────────────────────────────────
+  supabase_flutter: ^2.8.4      # Cliente Supabase (auth, db, storage)
+  google_sign_in: ^7.2.0        # Inicio de sesión con Google
+  googleapis: ^16.0.0           # APIs de Google (Drive, Calendar, etc.)
+  encrypt: ^5.0.3               # Cifrado AES/RSA para datos sensibles
+  crypto: ^3.0.3
+
+  # ── Almacenamiento local ──────────────────────────────────────
+  shared_preferences: ^2.5.5    # Clave-valor persistente simple
+  path_provider: ^2.1.3         # Rutas del sistema de archivos del dispositivo
+  isar: ^3.1.0                  # Base de datos NoSQL embebida (fijado en 3.x)
+  isar_flutter_libs: ^3.1.0     # Binarios nativos de Isar para Flutter
+  uuid: ^4.0.0                  # Generación de identificadores únicos UUID
+
+  # ── Almacenamiento de objetos (MinIO / S3-compatible) ─────────
+  minio: ^3.5.8                 # Cliente MinIO para subida/descarga de archivos
+
+  # ── Multimedia — cámara y galería ────────────────────────────
+  camera: ^0.12.0+1             # Acceso directo a la cámara del dispositivo
+  image_picker: ^1.1.2          # Selector de imágenes y videos de la galería
+  photo_manager: ^3.3.0         # Gestión avanzada de la galería (álbumes, filtros)
+  flutter_image_compress: ^2.3.0 # Compresión de imágenes antes de subir
+  ffmpeg_kit_flutter_new: ^4.3.2 # Compresión de videos antes de subir
+
+  # ── Multimedia — reproducción ────────────────────────────────
+  video_player: ^2.9.2          # Reproductor de video nativo
+  chewie: ^1.8.5                # Controles UI sobre video_player
+  video_trimmer: ^5.0.0         # Recorte de video en el dispositivo
+  just_audio: ^0.10.5           # Reproductor de audio multiplataforma
+  audio_session: ^0.2.3         # Gestión de la sesión de audio del SO
+
+  # ── PDF ───────────────────────────────────────────────────────
+  pdfx: ^2.6.0                  # Renderizado de PDF en Flutter
+
+  # ── Red y navegación ─────────────────────────────────────────
+  http: ^1.2.1                  # Cliente HTTP para descarga de archivos
+  url_launcher: ^6.2.5          # Abrir URLs en el navegador o apps externas
+  app_links: ^7.1.2             # Deep links y universal links (Android + iOS)
+  webview_flutter: ^4.10.0      # WebView embebido para contenido web
+
+  # ── Mapas ─────────────────────────────────────────────────────
+  google_maps_flutter: ^2.11.0  # Mapa interactivo de Google Maps
+
+  # ── Utilidades ────────────────────────────────────────────────
+  intl: ^0.20.2                 # Formato de fechas, números e i18n
+  timeago: ^3.6.0               # Formato de fechas relativas ("hace 5 min")
+  permission_handler: ^12.0.3   # Solicitud de permisos en tiempo de ejecución
+  visibility_detector: ^0.4.0+2 # Detección de visibilidad de widgets en pantalla
+  share_plus: ^13.1.0           # Compartir contenido con otras apps del SO
+
+  # ── Splash ────────────────────────────────────────────────────
+  flutter_native_splash: ^2.4.1 # Generación de splash nativo (ver sección abajo)
+
+
+# ─────────────────────────────────────────────────────────────────
+# DEPENDENCIAS DE DESARROLLO
+# ─────────────────────────────────────────────────────────────────
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0          # Reglas de lint recomendadas para Flutter
+  flutter_launcher_icons: ^0.14.4 # Generación de íconos de la app
+  isar_generator: ^3.1.0         # Generación de código para esquemas de Isar
+  build_runner: ^2.4.0           # Ejecutor de generadores de código (isar, etc.)
+
+
+# ─────────────────────────────────────────────────────────────────
+# SPLASH NATIVO
+# Genera la pantalla de bienvenida con `flutter pub run flutter_native_splash:create`.
+# android_12 requiere configuración separada porque Android 12+ usa
+# la Splash Screen API propia del SO en lugar de la pantalla tradicional.
+# ─────────────────────────────────────────────────────────────────
+flutter_native_splash:
+  color: "#050D2E"
+  image: assets/icons/splash_foreground.png
+  android_12:
+    color: "#050D2E"
+    image: assets/icons/splash_foreground.png
+    icon_background_color: "#050D2E"
+
+
+# ─────────────────────────────────────────────────────────────────
+# ÍCONO DE LA APP
+# Genera los íconos con `flutter pub run flutter_launcher_icons`.
+# El ícono adaptativo de Android (API 26+) usa capa de fondo de color
+# sólido y capa de primer plano con el logo, para compatibilidad con
+# las diferentes formas de ícono del launcher.
+#
+# NOTA: image_path / adaptive_icon_foreground usan jaguar_foreground.png
+#   (logo oficial de "Aspirantes ITVH"), NO splash_foreground.png —
+#   ese último es exclusivo de la pantalla de bienvenida, arriba.
+# ─────────────────────────────────────────────────────────────────
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/splash_foreground.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#050D2E"
+  adaptive_icon_foreground: "assets/icons/splash_foreground.png"
+
+
+# ─────────────────────────────────────────────────────────────────
+# FLUTTER — ASSETS
+# Todos los assets deben declararse explícitamente; Flutter no
+# incluye directorios completos de forma automática.
+#
+# NOTA: Ajusta estas rutas a los assets reales de Aspirantes ITVH.
+# Se conserva la misma estructura de carpetas que Comunidad TecNM
+# como punto de partida.
+# ─────────────────────────────────────────────────────────────────
+flutter:
+  uses-material-design: true
+
+  assets:
+    # ── Datos geoespaciales (UbicaTecNM Campus Villahermosa) ─────
+    - assets/mapas/campus_data.geojson
+
+    # ── Branding y AppBar ────────────────────────────────────────
+    - assets/images/appbar_modo_claro.png
+    - assets/images/appbar_modo_oscuro.png
+    - assets/images/logo_itvh.png
+    - assets/images/tec_villahermosa.png
+
+    # ── Drawer ───────────────────────────────────────────────────
+    - assets/images/drawer_imagen1.jpg
+    - assets/images/drawer_imagen2.jpg
+    - assets/images/drawer_imagen2_1.jpg
+    - assets/images/drawer_imagen2_2.jpg
+    - assets/images/drawer_imagen3.jpg
+    - assets/images/sie_logo.png
+
+    # ── Galería de campus ────────────────────────────────────────
+    - assets/images/galeria_imagen1.jpeg
+    - assets/images/galeria_imagen2.jpeg
+    - assets/images/galeria_imagen3.jpeg
+    - assets/images/galeria_imagen4.jpeg
+    - assets/images/galeria_imagen5.jpeg
+    - assets/images/galeria_imagen6.jpeg
+    - assets/images/galeria_imagen7.jpeg
+
+    # ── Íconos de redes sociales ─────────────────────────────────
+    - assets/icons/facebook.png
+    - assets/icons/instagram.png
+    - assets/icons/tiktok.png
+
+    # ── Íconos de la app ─────────────────────────────────────────
+    - assets/icons/splash_foreground.png
