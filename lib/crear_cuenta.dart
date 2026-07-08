@@ -33,6 +33,15 @@
 // Widgets internos:
 //   • _GlassField    — campo de texto glassmorphism con animación de foco
 //   • _GlassDropdown — dropdown glassmorphism genérico tipado
+//
+// ── NOTA DE DISEÑO (no corregible solo desde el cliente) ────────────
+// La verificación de unicidad de `nombre_usuario`/`numero_ficha` y el
+// signUp posterior no son atómicos: si dos personas se registran casi
+// al mismo tiempo con el mismo usuario/ficha, ambas verificaciones
+// pueden pasar antes de que cualquiera inserte su fila. Para blindarlo
+// de verdad hace falta una restricción UNIQUE en esas columnas dentro
+// de `perfiles_aspirantes`, para que el segundo intento falle limpio
+// en vez de crear un estado inconsistente.
 // ═════════════════════════════════════════════════════════════════
 
 import 'dart:ui';
@@ -159,8 +168,9 @@ class _RegisterScreenState extends State<RegisterScreen>
         _carreras         = (data as List).cast<Map<String, dynamic>>();
         _cargandoCarreras = false;
       });
-    } catch (e) {
-      debugPrint('RegisterScreen – error al cargar carreras: $e');
+    } catch (_) {
+      // Se ignora — el dropdown simplemente se queda sin opciones
+      // y el usuario no podrá avanzar hasta que recargue la pantalla.
       if (mounted) setState(() => _cargandoCarreras = false);
     }
   }
@@ -294,21 +304,9 @@ class _RegisterScreenState extends State<RegisterScreen>
       }
 
     } on AuthException catch (e) {
-      // ── DEBUG: imprime el error real de Supabase Auth ──────────
-      // _traducirError() generaliza el mensaje para el usuario, pero
-      // aquí vemos exactamente qué está fallando del lado del servidor.
-      debugPrint('❌ AuthException en _register():');
-      debugPrint('   message    -> ${e.message}');
-      debugPrint('   statusCode -> ${e.statusCode}');
-      debugPrint('   code       -> ${e.code}');
-
       _showError(_traducirError(e.message));
       if (mounted) setState(() => _loading = false);
-    } catch (e, stackTrace) {
-      // ── DEBUG: captura cualquier error no-Auth (red, parsing, etc.) ──
-      debugPrint('❌ Error inesperado en _register(): $e');
-      debugPrint('$stackTrace');
-
+    } catch (_) {
       _showError('Error al crear la cuenta. Intenta de nuevo.');
       if (mounted) setState(() => _loading = false);
     }
@@ -339,7 +337,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     if (lower.contains('signup is disabled')) {
       return 'El registro está deshabilitado temporalmente.';
     }
-    return msg;
+    return 'Error al crear la cuenta. Intenta de nuevo.';
   }
 
 
@@ -575,9 +573,18 @@ class _RegisterScreenState extends State<RegisterScreen>
                                     items:     _carreras
                                         .map((c) => c['id'] as String)
                                         .toList(),
-                                    itemLabel: (id) => _carreras.firstWhere(
-                                          (c) => c['id'] == id,
-                                    )['nombre'] as String,
+                                    itemLabel: (id) {
+                                      // orElse evita un StateError si el
+                                      // catálogo se recarga y el id
+                                      // seleccionado ya no aparece en la
+                                      // lista (edge case poco común, pero
+                                      // barato de cubrir).
+                                      final match = _carreras.firstWhere(
+                                            (c) => c['id'] == id,
+                                        orElse: () => const {'nombre': '—'},
+                                      );
+                                      return match['nombre'] as String;
+                                    },
                                     onChanged: _cargandoCarreras
                                         ? null
                                         : (v) => setState(

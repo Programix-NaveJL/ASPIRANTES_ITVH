@@ -36,7 +36,7 @@
 // Métodos públicos (misma firma que la versión anterior, ningún
 // caller necesita cambios):
 //   • subirFotoPerfil(file, userId)
-//       → sube avatar a itvh-aspirantes-perfil/<userId>/avatar.jpg
+//       → sube avatar a itvh-aspirantes-perfil/<userId>/avatar_<ts>.jpg
 //
 //   • subirMediaPublicacion(file, postId, userId, orden, onProgress?)
 //       → sube imagen o video a
@@ -74,10 +74,22 @@ class StorageService {
   // FOTO DE PERFIL
   //
   // Bucket : itvh-aspirantes-perfil
-  // Path   : <userId>/avatar.jpg
+  // Path   : <userId>/avatar_<timestamp>.jpg
   //
-  // Siempre sobreescribe el avatar anterior con el mismo path,
-  // por lo que no se acumulan archivos huérfanos en R2.
+  // NOTA (actualizada): el path incluye un timestamp, así que YA NO
+  // sobreescribe el avatar anterior con el mismo nombre — esto es
+  // intencional, para evitar que el CDN siga sirviendo en caché la
+  // foto vieja justo después de que el usuario la cambia (mismo path
+  // = misma URL cacheada = avatar "atorado" visualmente).
+  //
+  // Contraparte de ese cache-busting: cada cambio de foto deja el
+  // avatar anterior huérfano en R2 (nadie lo borra automáticamente
+  // desde aquí). Si esto importa a mediano plazo (costo de storage,
+  // limpieza), la forma de resolverlo es que quien llama a este
+  // método guarde el path anterior (ya disponible en
+  // perfiles_aspirantes.cdn_foto_perfil antes de sobreescribirlo) y
+  // llame a eliminarDeR2() con ese path justo después de que esta
+  // función regrese la nueva URL.
   // ─────────────────────────────────────────────────────────────
   Future<String> subirFotoPerfil({
     required File   file,
@@ -86,7 +98,7 @@ class StorageService {
     final compressed = await _comprimirImagen(file);
     try {
       final version = DateTime.now().millisecondsSinceEpoch;
-      final path = '$userId/avatar_$version.jpg';   // antes: '$userId/avatar.jpg'
+      final path = '$userId/avatar_$version.jpg';
       await _subirViaUrlFirmada(
         file:        compressed,
         bucket:      R2Config.bucketPerfil,
@@ -211,6 +223,11 @@ class StorageService {
   /// la compresión con el porcentaje de avance (0-100), calculado a
   /// partir de la duración real del video (vía FFprobe) contra el
   /// tiempo ya procesado por FFmpeg.
+  ///
+  /// Si FFmpeg falla después de haber escrito parcialmente el
+  /// archivo de salida, ese archivo temporal se borra antes de
+  /// relanzar el error (evita dejar restos a medio escribir en la
+  /// carpeta temporal).
   Future<File> _comprimirVideo(
       File file, {
         ProgresoCallback? onProgress,
@@ -251,6 +268,10 @@ class StorageService {
 
     final returnCode = await session.getReturnCode();
     if (!ReturnCode.isSuccess(returnCode)) {
+      // Limpieza defensiva: si FFmpeg alcanzó a escribir algo del
+      // archivo de salida antes de fallar, lo borramos para no dejar
+      // basura a medio comprimir en la carpeta temporal.
+      await _limpiar(File(outPath));
       throw Exception('Error al comprimir video (código: $returnCode)');
     }
 

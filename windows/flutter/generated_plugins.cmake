@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   ffmpeg_kit_flutter_new
   file_selector_windows
+  firebase_core
   gal
   isar_flutter_libs
   pdfx

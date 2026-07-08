@@ -242,11 +242,11 @@ class _AjustesScreenState extends State<AjustesScreen> {
                     _SettingsTile(
                       icon:      Icons.description_outlined,
                       iconColor: _orange,
-                      title:     'Términos y condiciones',
+                      title:     'Términos y condiciones de uso',
                       text1:     text1,
                       text2:     text2,
                       onTap: () => _abrirUrl(
-                        'https://programix-navejl.github.io/ASPIRANTES_ITVH/terminos.html',
+                        'https://programix-navejl.github.io/Aspirantes-ITVH-Cumplimiento-Legal/terminos.html',
                       ),
                     ),
                     _Divider(isDark: isDark),
@@ -257,7 +257,18 @@ class _AjustesScreenState extends State<AjustesScreen> {
                       text1:     text1,
                       text2:     text2,
                       onTap: () => _abrirUrl(
-                        'https://programix-navejl.github.io/ASPIRANTES_ITVH/politicas.html',
+                        'https://programix-navejl.github.io/Aspirantes-ITVH-Cumplimiento-Legal/politicas.html',
+                      ),
+                    ),
+                    _Divider(isDark: isDark),
+                    _SettingsTile(
+                      icon:      Icons.privacy_tip_outlined,
+                      iconColor: _orange,
+                      title:     'Estándares de seguridad infantil',
+                      text1:     text1,
+                      text2:     text2,
+                      onTap: () => _abrirUrl(
+                        'https://programix-navejl.github.io/Aspirantes-ITVH-Cumplimiento-Legal/estandares.html',
                       ),
                     ),
                   ],
@@ -297,26 +308,34 @@ class _AjustesScreenState extends State<AjustesScreen> {
                 const SizedBox(height: 48),
 
                 // Pie de página con créditos.
-                Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        'Aspirantes ITVH',
-                        style: TextStyle(
-                          color:      text2.withValues(alpha: 0.5),
-                          fontSize:   13,
-                          fontWeight: FontWeight.w600,
+                GestureDetector(
+                  onTap: () => launchUrl(
+                    Uri.parse(
+                      'https://programix-navejl.github.io/Programix-NaveJL-Pagina-Oficial/',
+                    ),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          'Aspirantes ITVH',
+                          style: TextStyle(
+                            color:      text2.withValues(alpha: 0.5),
+                            fontSize:   13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'Programix NaveJL © 2026',
-                        style: TextStyle(
-                          color:    text2.withValues(alpha: 0.5),
-                          fontSize: 11,
+                        const SizedBox(height: 3),
+                        Text(
+                          'Programix NaveJL © 2026',
+                          style: TextStyle(
+                            color:    text2.withValues(alpha: 0.5),
+                            fontSize: 11,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),

@@ -3,15 +3,16 @@
 //
 // Pantalla de inicio de sesión de Aspirantes ITVH.
 //
-// Permite autenticarse con correo electrónico o nombre de usuario.
-// Si se ingresa un nombre de usuario, se resuelve primero el correo
-// asociado en la tabla `perfiles_aspirantes` antes de llamar a
-// Supabase Auth.
+// Permite autenticarse con correo electrónico, nombre de usuario o
+// número de ficha. Si se ingresa un identificador que no es correo,
+// se resuelve primero el correo asociado en la tabla
+// `perfiles_aspirantes` antes de llamar a Supabase Auth.
 //
 // Flujo de login:
 //   1. Validar que los campos no estén vacíos.
-//   2. Si el identificador no contiene '@', buscar el correo
-//      asociado al nombre de usuario en `perfiles_aspirantes`.
+//   2. Si el identificador no contiene '@', se valida su formato y se
+//      busca el correo asociado (nombre de usuario o número de ficha)
+//      en `perfiles_aspirantes`.
 //   3. Autenticar con Supabase Auth (email + password).
 //   4. Verificar `estado_cuenta` en `perfiles_aspirantes`:
 //        • 'suspendido' | 'expulsado' → cerrar sesión y mostrar
@@ -22,11 +23,23 @@
 // Widgets internos:
 //   • _GlassField — campo de texto con estilo glassmorphism,
 //     animación de foco y soporte para trailing widget.
+//
+// ── NOTAS DE SEGURIDAD / MANTENIMIENTO ──────────────────────────────
+// • La búsqueda de correo por nombre_usuario/numero_ficha se ejecuta
+//   ANTES de autenticar, con la publishable key (acceso público).
+//   Verifica que la policy RLS de `perfiles_aspirantes` no exponga
+//   más que la columna `email` para este propósito — idealmente vía
+//   una vista o RPC restringida — para no permitir que cualquiera
+//   enumere qué usuarios/fichas existen en la plataforma.
+// • El identificador se sanea con una regex antes de insertarse en el
+//   filtro .or() de PostgREST, porque coma/punto/paréntesis son
+//   caracteres estructurales de ese filtro y pueden romper la query.
 // ═════════════════════════════════════════════════════════════════
+
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:ui';
 
 import 'crear_cuenta.dart';
 
@@ -64,6 +77,12 @@ class _LoginScreenState extends State<LoginScreen>
   late final AnimationController _animController;
   late final Animation<double>   _fadeAnim;
   late final Animation<Offset>   _slideAnim;
+
+  /// Formato aceptado para nombre de usuario / número de ficha:
+  /// solo letras, números, guion y guion bajo. Cualquier otro
+  /// carácter (coma, punto, paréntesis, etc.) se rechaza antes de
+  /// llegar al filtro .or() de Supabase, para no romper su sintaxis.
+  static final RegExp _identificadorValidoRegex = RegExp(r'^[a-zA-Z0-9_\-]+$');
 
 
   // ─────────────────────────────────────────────────────────────
@@ -124,11 +143,21 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _loading = true);
 
     try {
-      // Si no contiene '@', se asume que es un nombre de usuario
-      // y se resuelve el correo asociado antes de autenticar.
+      // Si no contiene '@', se asume que es un nombre de usuario o
+      // número de ficha, y se resuelve el correo asociado antes de
+      // autenticar.
       String email = identifier;
 
       if (!identifier.contains('@')) {
+        // Rechazamos identificadores con caracteres que rompan la
+        // sintaxis del filtro .or() (coma, punto, paréntesis, etc.)
+        // antes de siquiera consultar la base de datos.
+        if (!_identificadorValidoRegex.hasMatch(identifier)) {
+          if (mounted) setState(() => _loading = false);
+          _showError('Usuario o contraseña incorrectos.');
+          return;
+        }
+
         final result = await Supabase.instance.client
             .from('perfiles_aspirantes')
             .select('email')
@@ -175,8 +204,9 @@ class _LoginScreenState extends State<LoginScreen>
         }
       }
 
-      // Login exitoso — AuthGate detecta el evento signedIn
-      // y navega al Feed automáticamente.
+      // Login exitoso: no reseteamos `_loading` aquí a propósito.
+      // AuthGate detecta el evento signedIn y reemplaza esta pantalla
+      // por el Feed automáticamente, así que no hace falta.
     } on AuthException catch (e) {
       if (mounted) setState(() => _loading = false);
       _showError(_traducirError(e.message));
@@ -239,7 +269,7 @@ class _LoginScreenState extends State<LoginScreen>
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color:  color.withValues(alpha:0.15),
+                    color:  color.withValues(alpha: 0.15),
                     shape:  BoxShape.circle,
                   ),
                   child: Icon(
@@ -356,9 +386,9 @@ class _LoginScreenState extends State<LoginScreen>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withValues(alpha:0.65),
-                    Colors.black.withValues(alpha:0.45),
-                    Colors.black.withValues(alpha:0.85),
+                    Colors.black.withValues(alpha: 0.65),
+                    Colors.black.withValues(alpha: 0.45),
+                    Colors.black.withValues(alpha: 0.85),
                   ],
                   begin: Alignment.topCenter,
                   end:   Alignment.bottomCenter,
@@ -400,10 +430,10 @@ class _LoginScreenState extends State<LoginScreen>
                                 vertical:   32,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha:0.08),
+                                color: Colors.white.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha:0.18),
+                                  color: Colors.white.withValues(alpha: 0.18),
                                   width: 1.2,
                                 ),
                               ),
@@ -439,7 +469,10 @@ class _LoginScreenState extends State<LoginScreen>
                                     icon:            Icons.person_outline_rounded,
                                     textInputAction: TextInputAction.next,
                                     onSubmitted:     (_) => _passwordFocus.requestFocus(),
-                                    keyboardType:    TextInputType.text, // antes era emailAddress
+                                    // Se deja en texto libre (no emailAddress)
+                                    // porque el campo también acepta nombre
+                                    // de usuario o número de ficha.
+                                    keyboardType:    TextInputType.text,
                                   ),
                                   const SizedBox(height: 14),
 
@@ -511,7 +544,7 @@ class _LoginScreenState extends State<LoginScreen>
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor:        const Color(0xFF00C6FF),
                                         disabledBackgroundColor: const Color(0xFF00C6FF)
-                                            .withValues(alpha:0.5),
+                                            .withValues(alpha: 0.5),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(14),
                                         ),
@@ -656,13 +689,13 @@ class _GlassFieldState extends State<_GlassField> {
       padding:  const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
         color: _focused
-            ? Colors.white.withValues(alpha:0.12)
-            : Colors.white.withValues(alpha:0.06),
+            ? Colors.white.withValues(alpha: 0.12)
+            : Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: _focused
-              ? const Color(0xFF00C6FF).withValues(alpha:0.7)
-              : Colors.white.withValues(alpha:0.12),
+              ? const Color(0xFF00C6FF).withValues(alpha: 0.7)
+              : Colors.white.withValues(alpha: 0.12),
           width: 1.2,
         ),
       ),

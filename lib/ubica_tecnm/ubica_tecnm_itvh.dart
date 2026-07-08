@@ -55,6 +55,17 @@
 //   interpreta gestos, y compiten con el plugin). Se condicionaron
 //   con `kIsWeb` para suavizar la experiencia solo en web, sin tocar
 //   el comportamiento ya afinado en Android nativo.
+//
+// ← FIX "0." en listas del BottomSheet:
+//   Las descripciones del GeoJSON vienen exportadas desde Google My
+//   Maps, que genera tags `<li>` sueltos SIN un `<ul>`/`<ol>` como
+//   padre. flutter_html no puede llevar el conteo del índice en ese
+//   caso y termina renderizando "0." fijo en cada item en lugar de
+//   1, 2, 3... Se agregó `_normalizarDescripcionHtml`, que envuelve
+//   el bloque de `<li>` huérfanos en un `<ul>` (bullets en vez de
+//   números, ya que las descripciones son categorías/áreas, no pasos
+//   secuenciales) y limpia el `<div><br></div>` vacío que Google My
+//   Maps agrega al final de casi todas las descripciones.
 // ═════════════════════════════════════════════════════════════════
 
 import 'dart:convert';
@@ -191,6 +202,43 @@ class _UbicaTecScreenState extends State<UbicaTecScreen> {
         .replaceAll(RegExp(r'<[^>]*>'), '')
         .replaceAll('&nbsp;', ' ')
         .trim();
+  }
+
+  /// Normaliza descripciones HTML provenientes del GeoJSON (exportado
+  /// desde Google My Maps), que suelen traer `<li>` sueltos sin un
+  /// `<ul>`/`<ol>` como padre. flutter_html no puede llevar el conteo
+  /// del índice en ese caso y termina mostrando "0." en cada item en
+  /// lugar de 1, 2, 3...
+  ///
+  /// Aquí se envuelve el bloque completo de `<li>` en un `<ul>` si
+  /// aún no tiene un padre de lista, y se limpia el
+  /// `<div><br></div>` vacío que Google My Maps agrega al final de
+  /// casi todas las descripciones.
+  ///
+  /// Se usa `<ul>` (bullets) y no `<ol>` (números) porque las
+  /// descripciones son categorías/áreas del edificio, no pasos
+  /// secuenciales — y porque el contador de `<ol>` es justamente lo
+  /// que falla en flutter_html.
+  String _normalizarDescripcionHtml(String html) {
+    String resultado = html.trim();
+
+    // Elimina el <div><br></div> (o variantes) que Google My Maps
+    // agrega como separador final y que solo genera espacio vacío.
+    resultado = resultado.replaceAll(
+      RegExp(r'<div>\s*(<br\s*/?>)?\s*</div>\s*$'),
+      '',
+    );
+
+    // Si contiene <li> pero no está envuelto en <ul> ni <ol>,
+    // se envuelve para que flutter_html pueda numerar/viñetear bien.
+    final bool tieneLi   = resultado.contains('<li>');
+    final bool tieneUlOl = resultado.contains('<ul') || resultado.contains('<ol');
+
+    if (tieneLi && !tieneUlOl) {
+      resultado = '<ul>$resultado</ul>';
+    }
+
+    return resultado;
   }
 
 
@@ -349,8 +397,12 @@ class _UbicaTecScreenState extends State<UbicaTecScreen> {
 
         final String nombre         = properties['Name'] ?? 'Sin nombre';
         final String descripcionRaw = properties['description'] ?? '';
-        final String descripcion    = descripcionRaw.isNotEmpty
-            ? descripcionRaw
+        // ← CAMBIADO: se normaliza el HTML crudo del GeoJSON antes de
+        // usarlo. Google My Maps exporta `<li>` sueltos sin `<ul>`/<ol>`
+        // como padre, lo que hacía que flutter_html mostrara "0." en
+        // cada item de la lista dentro del BottomSheet.
+        final String descripcion = descripcionRaw.isNotEmpty
+            ? _normalizarDescripcionHtml(descripcionRaw)
             : '<p>Sin descripción disponible.</p>';
 
         // Elegir el modo de presentación antes de construir el marcador

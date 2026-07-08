@@ -2,15 +2,12 @@
 // feed.dart — Aspirantes ITVH  —  R2
 //
 // Pantalla raíz de la app "Aspirantes ITVH".
-// Versión de SOLO VISUALIZACIÓN: aún no existe backend/lógica para
-// esta app, por lo que no hay llamadas a Supabase (salvo signOut y,
-// ahora, la lectura de la foto de perfil para el avatar del AppBar),
-// ni Realtime, ni navegación real a pantallas externas. Todo lo que
-// en Comunidad ITVH dependía de datos remotos aquí se muestra con
-// placeholders estáticos o con un SnackBar "Próximamente".
 //
-// NUEVO: sistema de notificaciones en vivo, estilo iOS —
-//   • Campanita en el AppBar con badge rojo del conteo de no leídas.
+// Sistema de notificaciones en vivo, estilo iOS —
+//   • Campanita en el AppBar con badge rojo del conteo de no leídas
+//     (el badge en sí ya no vive en el AppBar de esta pantalla, ver
+//     nota en actions[] más abajo, pero el conteo se sigue calculando
+//     aquí y se pasa a ComunidadAspirantes).
 //   • Banner deslizante que aparece arriba de la pantalla cuando
 //     llega una notificación nueva (INSERT en tiempo real), con
 //     avatar/nombre/mensaje del remitente, se auto-oculta a los 4s
@@ -18,7 +15,7 @@
 //   • Todo alimentado por un canal de Supabase Realtime suscrito a
 //     la tabla `notificaciones` filtrado por destinatario_id.
 //
-// NUEVO: navegación de "back" estilo Facebook/Instagram —
+// Navegación de "back" estilo Facebook/Instagram —
 //   • Si el gesto/botón de retroceso ocurre estando en Mi Perfil o
 //     UbicaTec, regresa a la pestaña Comunidad en vez de salir.
 //   • Si ya estás en Comunidad, exige doble toque dentro de una
@@ -32,13 +29,14 @@
 //       1. Comunidad Nuevo Ingreso
 //       2. Mi Perfil Aspirante
 //       3. UbicaTecNM Campus Villahermosa
-//   • Mostrar un AppBar con el logo institucional (claro/oscuro), la
-//     campanita de notificaciones, y un avatar que refleja la foto
-//     de perfil real del usuario (con fallback al ícono genérico si
-//     no tiene foto o si falla la carga).
-//   • Construir el Drawer lateral con las mismas secciones visuales
-//     que Comunidad ITVH (Plantel, Plataformas, Preferencias), pero
-//     sin navegación real: cada opción muestra un aviso de "Próximamente".
+//   • Mostrar un AppBar con el logo institucional (claro/oscuro) y
+//     un avatar que refleja la foto de perfil real del usuario (con
+//     fallback al ícono genérico si no tiene foto o si falla la carga).
+//   • Construir el Drawer lateral con secciones visuales (Plantel,
+//     Plataformas, Preferencias). Algunas opciones ya navegan a
+//     pantallas reales (Conoce el plantel, Historia, Oferta educativa,
+//     Ajustes); las que aún no tienen pantalla muestran un aviso de
+//     "Próximamente" vía _proximamente().
 //   • Alternar tema claro/oscuro de forma GLOBAL a través de
 //     isDarkNotifier (definido en main.dart) — el cambio se refleja
 //     en toda la app, no solo en esta pantalla.
@@ -63,8 +61,7 @@
 //   la app.
 //
 // Widgets internos:
-//   • _TabItem                    — modelo de datos para cada pestaña
-//   • _PlaceholderTabBody          — cuerpo genérico para cada tab
+//   • _TabItem — modelo de datos para cada pestaña
 // ═════════════════════════════════════════════════════════════════
 
 import 'dart:async';
@@ -156,7 +153,7 @@ class _FeedAspirantesState extends State<FeedAspirantes>
   @override
   void initState() {
     super.initState();
-    print('TOKEN: ${Supabase.instance.client.auth.currentSession?.accessToken}');
+
     _tabController = TabController(length: _tabs.length, vsync: this);
 
     // Listener en la animación (no en index) para actualizar el ícono
@@ -264,8 +261,7 @@ class _FeedAspirantesState extends State<FeedAspirantes>
 
       if (!mounted || data == null) return;
       setState(() => _fotoUrl = resolverUrlPerfil(data));
-    } catch (e) {
-      debugPrint('FeedAspirantes – error al cargar foto de perfil: $e');
+    } catch (_) {
       // Se ignora — el avatar simplemente se queda con el ícono genérico.
     }
   }
@@ -292,8 +288,8 @@ class _FeedAspirantesState extends State<FeedAspirantes>
 
       if (!mounted) return;
       setState(() => _notificacionesNoLeidas = (data as List).length);
-    } catch (e) {
-      debugPrint('FeedAspirantes – error al contar notificaciones: $e');
+    } catch (_) {
+      // Se ignora — el badge simplemente conserva el último valor conocido.
     }
   }
 
@@ -366,8 +362,9 @@ class _FeedAspirantesState extends State<FeedAspirantes>
         if (!mounted) return;
         setState(() => _bannerData = null);
       });
-    } catch (e) {
-      debugPrint('FeedAspirantes – error al mostrar banner: $e');
+    } catch (_) {
+      // Se ignora — si falla la resolución del perfil, simplemente
+      // no se muestra el banner para esta notificación.
     }
   }
 
@@ -419,25 +416,6 @@ class _FeedAspirantesState extends State<FeedAspirantes>
   // ─────────────────────────────────────────────────────────────
   // HELPERS VISUALES
   // ─────────────────────────────────────────────────────────────
-
-  /// Muestra un aviso breve para las opciones del Drawer que todavía
-  /// no tienen pantalla o lógica implementada.
-  void _proximamente(String funcion) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$funcion estará disponible próximamente'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  /// Cierra la sesión activa en Supabase Auth. No navega manualmente:
-  /// AuthGate (main.dart) escucha onAuthStateChange y regresa solo
-  /// a LoginScreen en cuanto detecta el evento signedOut.
-  Future<void> _cerrarSesion() async {
-    await Supabase.instance.client.auth.signOut();
-  }
 
 
   // ─────────────────────────────────────────────────────────────
@@ -600,8 +578,6 @@ class _FeedAspirantesState extends State<FeedAspirantes>
                 ),
 
                 // TabBarView sincronizado con el mismo controller del TabBar.
-                // Los tres cuerpos son placeholders visuales, sin datos reales
-                // hasta que se defina la lógica/backend de esta app.
                 body: TabBarView(
                   controller: _tabController,
                   children: [
@@ -754,12 +730,9 @@ class _FeedAspirantesState extends State<FeedAspirantes>
   // ─────────────────────────────────────────────────────────────
 
   /// Construye el Drawer lateral con tres secciones visuales:
-  ///   • PLANTEL      — pantallas informativas + compartir (sin lógica)
-  ///   • PLATAFORMAS  — accesos a SIE y SWS (sin lógica)
-  ///   • PREFERENCIAS — toggle de tema global y ajustes (sin lógica)
-  ///
-  /// Ninguna opción navega todavía a una pantalla real: todas muestran
-  /// un SnackBar de "Próximamente" mediante _proximamente().
+  ///   • PLANTEL      — pantallas informativas + compartir
+  ///   • PLATAFORMAS  — accesos a SIE y SWS
+  ///   • PREFERENCIAS — toggle de tema global y ajustes
   Widget _buildDrawer(bool isDark, Color bgCard, Color divColor,
       Color textPrimary, Color accent) {
     return Drawer(
@@ -846,10 +819,14 @@ class _FeedAspirantesState extends State<FeedAspirantes>
                 isDark:    isDark,
                 onTap: () {
                   Navigator.pop(context);
+                  // TODO: reemplazar TU_PACKAGE_ID por el applicationId real
+                  // (el mismo que va en android/app/build.gradle) antes de
+                  // publicar — de lo contrario el link de Play Store que se
+                  // comparte no llevará a ningún lado.
                   SharePlus.instance.share(ShareParams(text:
                   'Descarga "Aspirantes ITVH". La antesala de la app Comunidad ITVH.\n\n'
-                      'Android: https://play.google.com/store/apps/details?id=TU_PACKAGE_ID\n\n'
-                      'iOS: PRÓXIMAMENTE'),
+                      'Android: https://play.google.com/apps/testing/com.programixnavejl.aspirantes_itvh\n\n'
+                      'iOS (en su versión web): https://programix-navejl.github.io/Aspirantes-ITVH-Proyecto-Web/'),
                   );
                 },
               ),
@@ -960,7 +937,7 @@ class _FeedAspirantesState extends State<FeedAspirantes>
               GestureDetector(
                 onTap: () => launchUrl(
                   Uri.parse(
-                    'https://programix-navejl.github.io/programix-navejl/',
+                    'https://programix-navejl.github.io/Programix-NaveJL-Pagina-Oficial/',
                   ),
                   mode: LaunchMode.externalApplication,
                 ),
@@ -1252,112 +1229,4 @@ class _TabItem {
     required this.icon,
     required this.activeIcon,
   });
-}
-
-
-// ─────────────────────────────────────────────────────────────────
-// CUERPO PLACEHOLDER DE CADA TAB
-//
-// Widget genérico reutilizado en las tres pestañas mientras no exista
-// la lógica/backend real de "Aspirantes ITVH". Muestra un ícono grande,
-// un título y un subtítulo descriptivo de lo que irá en esa sección.
-//
-// Nota: sigue leyendo Theme.of(context).brightness direct (no
-// isDarkNotifier) porque MaterialApp ya reconstruye su ThemeData
-// completo desde main.dart cuando el tema global cambia, así que
-// este widget se entera igual sin necesidad de escuchar el notifier
-// por su cuenta.
-// ─────────────────────────────────────────────────────────────────
-
-// ─────────────────────────────────────────────────────────────────
-// CUERPO PLACEHOLDER SIN ÍCONO/TÍTULO
-//
-// Versión reducida de _PlaceholderTabBody, usada en tabs que ya
-// tienen su propio encabezado real (como ComunidadAspirantes en
-// page_home.dart) y por lo tanto no necesitan repetir ícono y título
-// dentro del cuerpo — solo el mensaje descriptivo mientras no exista
-// contenido real.
-// ─────────────────────────────────────────────────────────────────
-
-class _PlaceholderContenido extends StatelessWidget {
-  final String subtitulo;
-
-  const _PlaceholderContenido({required this.subtitulo});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Text(
-          subtitulo,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color:    isDark ? Colors.white38 : Colors.black38,
-            fontSize: 13,
-            height:   1.4,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-class _PlaceholderTabBody extends StatelessWidget {
-  final IconData icono;
-  final String   titulo;
-  final String   subtitulo;
-
-  const _PlaceholderTabBody({
-    required this.icono,
-    required this.titulo,
-    required this.subtitulo,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF007AFF)
-                    .withValues(alpha: isDark ? 0.16 : 0.10),
-              ),
-              child: Icon(icono, size: 38, color: const Color(0xFF007AFF)),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              titulo,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color:      isDark ? Colors.white : Colors.black87,
-                fontSize:   18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitulo,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color:    isDark ? Colors.white38 : Colors.black38,
-                fontSize: 13,
-                height:   1.4,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
